@@ -1,0 +1,11 @@
+{
+	"dependencies": {
+		"ethers": "^6.17.0",
+		"qrcode": "^1.5.4",
+		"three": "^0.186.1"
+	},
+	"devDependencies": {
+		"@esbuild/win32-x64": "^0.28.2",
+		"esbuild": "^0.28.2"
+	}
+}

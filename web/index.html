@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<title>Clay Wallet — a real, self-custody crypto wallet</title>
+<meta name="description" content="A self-custody EVM crypto wallet with a hand-made clay look. Keys stay in your browser.">
+<meta name="color-scheme" content="light">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cdefs%3E%3CradialGradient id='g' cx='35%25' cy='30%25'%3E%3Cstop offset='0%25' stop-color='%23f6c08f'/%3E%3Cstop offset='100%25' stop-color='%23e8894e'/%3E%3C/radialGradient%3E%3C/defs%3E%3Ccircle cx='32' cy='32' r='28' fill='url(%23g)'/%3E%3Ccircle cx='24' cy='22' r='6' fill='%23fff4e4' opacity='.7'/%3E%3Cpath d='M18 40h28' stroke='%235a4230' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="style.css">
+<link rel="manifest" href="/manifest.webmanifest">
+<meta name="theme-color" content="#e8894e">
+<link rel="apple-touch-icon" href="/icons/icon-192.png">
+</head>
+<body>
+
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+<div class="stage">
+  <header class="stage-head" aria-hidden="true">
+    <div class="stage-logo">CLAY&nbsp;WALLET</div>
+    <div class="stage-tag">self-custody · keys stay here</div>
+  </header>
+
+  <div class="phone">
+    <!-- ==================== GATE (create / import / unlock) ==================== -->
+    <div class="gate" id="gate">
+      <div class="gate-body" id="gate-body"></div>
+    </div>
+
+    <main id="screens">
+
+      <!-- ==================== WALLET ==================== -->
+      <section class="screen active" id="screen-wallet" data-screen="wallet">
+        <header class="topbar">
+          <div class="avatar" id="avatar">0x</div>
+          <div class="topbar-title">
+            <div class="topbar-greet" id="greeting">Good morning</div>
+            <button class="address-chip" id="address-chip" title="Copy address">
+              <span class="addr-dot"></span><span id="address-short">0x…</span><span class="copy-ic">⧉</span>
+            </button>
+          </div>
+          <button class="round-btn" id="btn-notify" title="Network status">🛜</button>
+        </header>
+
+        <div class="balance-block">
+          <div class="balance-label">Total balance</div>
+          <div class="balance-value" id="total-value">$—</div>
+          <div class="balance-change" id="total-change">loading…</div>
+        </div>
+
+        <div class="net-chips" id="network-chips"></div>
+
+        <div class="quick-actions">
+          <button class="qa qa-receive" data-nav="receive"><span class="qa-ic">↓</span>Receive</button>
+          <button class="qa qa-send" data-nav="send"><span class="qa-ic">↑</span>Send</button>
+          <button class="qa qa-buy" id="btn-buy"><span class="qa-ic">＋</span>Buy</button>
+        </div>
+
+        <div class="list-head">
+          <h2>Your assets</h2>
+          <span class="list-sub" id="coin-count"></span>
+        </div>
+        <div class="token-list" id="token-list"></div>
+      </section>
+
+      <!-- ==================== SEND ==================== -->
+      <section class="screen" id="screen-send" data-screen="send">
+        <header class="topbar">
+          <button class="back-btn" data-nav="wallet">‹</button>
+          <div class="topbar-title"><div class="topbar-greet">Send</div></div>
+          <span class="topbar-spacer"></span>
+        </header>
+
+        <div class="form-panel">
+          <label class="field-label">Network</label>
+          <div class="net-chips" id="send-network"></div>
+
+          <label class="field-label">Asset</label>
+          <div class="coin-picker" id="send-assets"></div>
+
+          <label class="field-label" for="send-amount">Amount</label>
+          <div class="amount-box">
+            <input id="send-amount" type="text" inputmode="decimal" placeholder="0.00" autocomplete="off">
+            <button class="max-btn" id="btn-max">Max</button>
+          </div>
+          <div class="amount-usd" id="send-usd">≈ $0.00</div>
+
+          <label class="field-label" for="send-to">To address</label>
+          <div class="addr-box">
+            <input id="send-to" type="text" placeholder="0x…" autocomplete="off" spellcheck="false">
+            <button class="max-btn" id="btn-paste" title="Paste from clipboard">⧉</button>
+          </div>
+
+          <div class="fee-row">
+            <span>Network fee (est.)</span><span id="send-fee">—</span>
+          </div>
+
+          <button class="btn-primary" id="btn-review">Review</button>
+        </div>
+      </section>
+
+      <!-- ==================== SWAP ==================== -->
+      <section class="screen" id="screen-swap" data-screen="swap">
+        <header class="topbar">
+          <button class="back-btn" data-nav="wallet">‹</button>
+          <div class="topbar-title"><div class="topbar-greet">Swap</div></div>
+          <span class="topbar-spacer"></span>
+        </header>
+
+        <div class="form-panel">
+          <label class="field-label">Network</label>
+          <div class="net-chips" id="swap-network"></div>
+
+          <div class="swap-card">
+            <div class="swap-head"><span class="swap-label">You pay</span><span class="swap-bal" id="swap-in-bal"></span></div>
+            <div class="swap-body">
+              <input id="swap-amount" type="text" inputmode="decimal" placeholder="0.0" autocomplete="off">
+              <button class="swap-token" id="swap-in-token">Select</button>
+            </div>
+          </div>
+
+          <button class="swap-flip" id="swap-flip" title="Flip direction">⇅</button>
+
+          <div class="swap-card">
+            <div class="swap-head"><span class="swap-label">You receive</span><span class="swap-bal" id="swap-out-bal"></span></div>
+            <div class="swap-body">
+              <div class="swap-amount-out" id="swap-amount-out">—</div>
+              <button class="swap-token" id="swap-out-token">Select</button>
+            </div>
+          </div>
+
+          <div class="swap-details" id="swap-details" hidden></div>
+
+          <div class="slippage-row">
+            <span>Slippage tolerance</span>
+            <div class="slippage-opts">
+              <button class="slip on" data-slip="0.1">0.1%</button>
+              <button class="slip" data-slip="0.5">0.5%</button>
+              <button class="slip" data-slip="1.0">1.0%</button>
+            </div>
+          </div>
+
+          <button class="btn-primary" id="swap-btn">Enter an amount</button>
+        </div>
+      </section>
+
+      <!-- ==================== RECEIVE ==================== -->
+      <section class="screen" id="screen-receive" data-screen="receive">
+        <header class="topbar">
+          <button class="back-btn" data-nav="wallet">‹</button>
+          <div class="topbar-title"><div class="topbar-greet">Receive</div></div>
+          <span class="topbar-spacer"></span>
+        </header>
+
+        <div class="receive-panel">
+          <div class="network-pill" id="network-pill">EVM · all networks</div>
+          <div class="qr-frame"><img id="qr-img" alt="Wallet address QR code"></div>
+          <div class="qr-caption">Scan to copy your address — works on Ethereum, Polygon &amp; Base</div>
+          <button class="address-card" id="address-full" title="Tap to copy">
+            <span id="address-full-text">0x…</span><span class="copy-ic">⧉</span>
+          </button>
+          <div class="row-actions">
+            <button class="btn-secondary" id="btn-copy">Copy address</button>
+            <button class="btn-secondary" id="btn-share">Share</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ==================== HISTORY ==================== -->
+      <section class="screen" id="screen-history" data-screen="history">
+        <header class="topbar">
+          <button class="back-btn" data-nav="wallet">‹</button>
+          <div class="topbar-title"><div class="topbar-greet">History</div></div>
+          <span class="topbar-spacer"></span>
+        </header>
+        <div class="tx-list" id="tx-list"></div>
+        <div class="empty-state" id="tx-empty" hidden>No transactions yet.</div>
+      </section>
+
+      <!-- ==================== SETTINGS ==================== -->
+      <section class="screen" id="screen-settings" data-screen="settings">
+        <header class="topbar">
+          <button class="back-btn" data-nav="wallet">‹</button>
+          <div class="topbar-title"><div class="topbar-greet">Settings</div></div>
+          <span class="topbar-spacer"></span>
+        </header>
+
+        <div class="settings-list">
+          <div class="set-row"><span>Networks</span><span class="set-val">ETH · Polygon · Base · Arbitrum · OP · BNB · Sepolia</span></div>
+          <div class="set-row"><span>Currency</span><span class="set-val">USD</span></div>
+          <div class="set-row"><span>Wallet type</span><span class="set-val" id="wallet-type">—</span></div>
+          <button class="set-row set-btn" id="btn-accounts"><span>Accounts</span><span class="set-val">switch ›</span></button>
+          <button class="set-row set-btn" id="btn-import-token"><span>Import token</span><span class="set-val">add ERC-20 ›</span></button>
+          <button class="set-row set-btn" id="btn-phrase"><span>Secret phrase</span><span class="set-val">reveal ›</span></button>
+          <button class="set-row set-btn" id="btn-lock"><span>Lock wallet</span><span class="set-val">lock ›</span></button>
+          <button class="set-row set-btn" id="btn-delete"><span>Delete wallet</span><span class="set-val danger">delete ›</span></button>
+        </div>
+
+        <div class="about-note" id="about-note">
+          <b>Clay Wallet</b> is a real self-custody wallet. Your keys are generated and
+          encrypted <b>on this device only</b> and never leave your browser. Network
+          requests go to public RPC nodes and CoinGecko for prices.
+          <div class="phrase" id="phrase" hidden></div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- ==================== TAB BAR ==================== -->
+    <nav class="tabbar">
+      <button class="tab active" data-nav="wallet">
+        <svg viewBox="0 0 24 24"><path d="M3 7.5A2.5 2.5 0 0 1 5.5 5h13A2.5 2.5 0 0 1 21 7.5v9a2.5 2.5 0 0 1-2.5 2.5h-13A2.5 2.5 0 0 1 3 16.5v-9Z"/><path d="M3 9h18"/><path d="M16 14.5h.01"/></svg>
+        <span>Wallet</span>
+      </button>
+      <button class="tab" data-nav="send">
+        <svg viewBox="0 0 24 24"><path d="M12 19V5"/><path d="m6 11 6-6 6 6"/></svg>
+        <span>Send</span>
+      </button>
+      <button class="tab" data-nav="swap">
+        <svg viewBox="0 0 24 24"><path d="M7 16V4"/><path d="m3 8 4-4 4 4"/><path d="M17 8v12"/><path d="m13 20 4 4 4-4"/></svg>
+        <span>Swap</span>
+      </button>
+      <button class="tab" data-nav="receive">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="m6 13 6 6 6-6"/></svg>
+        <span>Receive</span>
+      </button>
+      <button class="tab" data-nav="history">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l2.5 2.5"/></svg>
+        <span>History</span>
+      </button>
+      <button class="tab" data-nav="settings">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+        <span>Settings</span>
+      </button>
+    </nav>
+  </div>
+</div>
+
+<!-- confirm / review sheet -->
+<div class="sheet-backdrop" id="sheet" hidden>
+  <div class="sheet" role="dialog" aria-modal="true">
+    <div class="sheet-grab"></div>
+    <div id="sheet-body"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast" hidden></div>
+
+<script src="vendor/ethers.js"></script>
+<script src="vendor/qrcode.js"></script>
+<script type="module" src="app.js"></script>
+</body>
+</html>

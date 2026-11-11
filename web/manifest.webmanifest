@@ -1,0 +1,16 @@
+{
+  "name": "Clay Wallet",
+  "short_name": "Clay Wallet",
+  "description": "A self-custody EVM crypto wallet with a hand-made clay look.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3e7d6",
+  "theme_color": "#e8894e",
+  "icons": [
+    { "src": "/icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
